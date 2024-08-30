@@ -35,3 +35,54 @@ In summary, test classes are an essential part of the development process in Sal
 
 - **@isTest(SeeAllData=true) - NOT RECOMMENDED** - If we use this annotation on top of the Apex Class or Test Class, then the test class will use or read the data from Salesforce itself. This will start creating problems when you are trying to deploy the code to production.
 
+- **Assert Class Methods** - https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_class_System_Assert.htm
+
+```apex
+@IsTest(seeAllData=true)
+public class AccountTriggerTest {
+
+    @TestSetup // NOT A TEST METHOD [Run before every test method]
+    public static void setupData() {
+        // Used for setting up the data that will be used for the class/trigger we are writing the test case
+        Account accRecord = new Account(Name = 'TEST Account');
+        insert accRecord;
+        Payment__c paymentRecord = new Payment__c(Account__c = accRecord.Id);
+        insert paymentRecord;
+    }
+
+    @IsTest // Test Method
+    private static void beforeInsertTest() {
+        // latest Way for creating test method..
+        Account accRecord = new Account(Name = 'TEST Account');
+        insert accRecord;
+        Payment_c paymentRecord = new Payment__c(Account__c = accRecord.Id);
+        insert paymentRecord;
+        //150th
+
+        Test.startTest();
+        // RESET
+        // DML - 150
+        // SOQL - 100 [SELECT STATEMENT]
+        // SOQL - 20
+        // SOQL ROWS [NO OF RECORDS RETURED By SELECT STATEMENT - 50K]
+        AccountTriggerHandler.handleAfterUpdate() ;
+        Test.stopTest() ;
+    }
+
+    // Test Method
+    private testMethod static void afterInsertTest() {
+      // Old way to creating test method..
+    }
+
+    @IsTest(seeAllData=true) // NOT RECOMMENDED - 99.99999999
+    private static void beforeInsert_Test(){
+        List<Account> accountList = [SELECT Id, Name FROM ACCOUNT WHERE NAME = 'TEST Account'];
+        Arithmatic arth = new Arithmatic();
+        arth.sum(3, 9);
+    
+        // Expected Outcome - 12
+        // Actual Outcome - Returned(Outcome of the process) by the process
+    }
+}
+```
+
